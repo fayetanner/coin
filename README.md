@@ -1,2 +1,2 @@
 # coin
-study create a coin by golang
+  基于Golang学习开发区块链
