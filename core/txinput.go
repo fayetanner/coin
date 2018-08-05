@@ -9,4 +9,3 @@ type TXInput struct {
 func (in *TXInput) CanUnlockOutputWith(unlockingData string) bool {
 	return in.ScriptSig == unlockingData
 }
-

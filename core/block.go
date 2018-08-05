@@ -1,11 +1,11 @@
 package core
 
 import (
-	"time"
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"log"
-	"crypto/sha256"
+	"time"
 )
 
 // 区块结构体定义
@@ -14,7 +14,7 @@ type Block struct {
 	Transactions  []*Transaction
 	PrevBlockHash []byte // 前一个区块的哈希值
 	Hash          []byte // 区块自身的哈希值，用于校验区块数据有效
-	Nonce         int // 工作量证明值,用来校验数据的
+	Nonce         int    // 工作量证明值,用来校验数据的
 }
 
 // 创建创世区块
@@ -25,10 +25,10 @@ func NewGenesisBlock(coinbase *Transaction) *Block {
 // NewBlock create and return Block
 func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	block := &Block{
-		Timestamp:time.Now().UnixNano(),
-		Transactions: transactions,
+		Timestamp:     time.Now().UnixNano(),
+		Transactions:  transactions,
 		PrevBlockHash: prevBlockHash,
-		Hash: []byte{},
+		Hash:          []byte{},
 	}
 
 	// 采用工作量证明得出的新区块
@@ -64,7 +64,7 @@ func DeserializeBlock(d []byte) *Block {
 // 把区块的所有交易ID做个hash处理
 func (b *Block) HashTransaction() []byte {
 	var txHashes [][]byte
-	var txHash   [32]byte
+	var txHash [32]byte
 
 	for _, tx := range b.Transactions {
 		txHashes = append(txHashes, tx.ID)
@@ -81,4 +81,3 @@ func (b *Block) HashTransaction() []byte {
 //	hash := sha256.Sum256(headers)
 //	b.Hash = hash[:]
 //}
-

@@ -1,12 +1,12 @@
 package core
 
 import (
-	"log"
+	"bytes"
+	"crypto/sha256"
+	"encoding/gob"
 	"encoding/hex"
 	"fmt"
-	"bytes"
-	"encoding/gob"
-	"crypto/sha256"
+	"log"
 )
 
 // 交易结构体，用来存储一笔交易
@@ -17,7 +17,7 @@ type Transaction struct {
 }
 
 // 设置交易的ID编号，这里是做hash处理
-func (tx *Transaction) SetID()  {
+func (tx *Transaction) SetID() {
 	var encoded bytes.Buffer
 	var hash [32]byte
 
@@ -43,7 +43,7 @@ func NewCoinbaseTransaction(to, data string) *Transaction {
 	txout := TXOutput{subsidy, to}
 	tx := Transaction{nil, []TXInput{txin}, []TXOutput{txout}}
 	tx.SetID()
-	
+
 	return &tx
 }
 

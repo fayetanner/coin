@@ -1,10 +1,10 @@
 package core
 
 import (
-	"math/big"
 	"bytes"
-	"fmt"
 	"crypto/sha256"
+	"fmt"
+	"math/big"
 )
 
 // 工作量证明结构

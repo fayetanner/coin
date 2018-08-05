@@ -1,8 +1,8 @@
 package core
 
 import (
-	"strconv"
 	"log"
+	"strconv"
 )
 
 // 整数转化为字节数组

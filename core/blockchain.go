@@ -1,9 +1,9 @@
 package core
 
 import (
-	"github.com/boltdb/bolt"
-	"fmt"
 	"encoding/hex"
+	"fmt"
+	"github.com/boltdb/bolt"
 	"os"
 )
 
@@ -54,19 +54,19 @@ func (bc *BlockChain) FindSpendableOutputs(address string, amount int) (int, map
 	unspentTXs := bc.FindUnspentTransactions(address)
 	accumulated := 0 // 总币数
 
-	Work:
-		for _, tx := range unspentTXs {
-			txID := hex.EncodeToString(tx.ID)
-			for outIdx, out := range tx.Vout {
-				if out.CanBeUnlockedWith(address) && accumulated < amount {
-					accumulated += out.Value
-					unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
-					if accumulated >= amount {
-						break Work
-					}
+Work:
+	for _, tx := range unspentTXs {
+		txID := hex.EncodeToString(tx.ID)
+		for outIdx, out := range tx.Vout {
+			if out.CanBeUnlockedWith(address) && accumulated < amount {
+				accumulated += out.Value
+				unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
+				if accumulated >= amount {
+					break Work
 				}
 			}
 		}
+	}
 
 	return accumulated, unspentOutputs
 }
@@ -78,33 +78,33 @@ func (bc *BlockChain) FindUnspentTransactions(address string) []Transaction {
 
 	for {
 		block := bci.Next()
-		for _,tx := range block.Transactions {
+		for _, tx := range block.Transactions {
 			txID := hex.EncodeToString(tx.ID)
 
-			OutPuts:
-				for outIdx, out := range tx.Vout {
-					// Was the output spent ?
-					if spentTXOs[txID] != nil {
-						for _, spentOut := range spentTXOs[txID] {
-							if spentOut == outIdx {
-								continue OutPuts
-							}
-						}
-					}
-
-					if out.CanBeUnlockedWith(address) {
-						unspentTXs = append(unspentTXs, *tx)
-					}
-				}
-
-				if tx.IsCoinbase() == false {
-					for _, in := range tx.Vin {
-						if in.CanUnlockOutputWith(address) {
-							inTxID := hex.EncodeToString(in.Txid)
-							spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
+		OutPuts:
+			for outIdx, out := range tx.Vout {
+				// Was the output spent ?
+				if spentTXOs[txID] != nil {
+					for _, spentOut := range spentTXOs[txID] {
+						if spentOut == outIdx {
+							continue OutPuts
 						}
 					}
 				}
+
+				if out.CanBeUnlockedWith(address) {
+					unspentTXs = append(unspentTXs, *tx)
+				}
+			}
+
+			if tx.IsCoinbase() == false {
+				for _, in := range tx.Vin {
+					if in.CanUnlockOutputWith(address) {
+						inTxID := hex.EncodeToString(in.Txid)
+						spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
+					}
+				}
+			}
 		}
 
 		if len(block.PrevBlockHash) == 0 {
@@ -150,7 +150,7 @@ func dbExists() bool {
 	存储到数据库
 	将创世块哈希保存为最后一个块的哈希
 	创建一个新的 Blockchain 实例，初始时 tip 指向创世块（tip 有尾部，尖端的意思，在这里 tip 存储的是最后一个块的哈希）
- */
+*/
 func NewBlockChain() *BlockChain {
 	if dbExists() == false {
 		fmt.Println("No existing blockchain found. Create one first.")
@@ -158,7 +158,7 @@ func NewBlockChain() *BlockChain {
 	}
 
 	var tip []byte
-	db, err :=bolt.Open(dbFile, 0600, nil)
+	db, err := bolt.Open(dbFile, 0600, nil)
 	HandleErr(err)
 
 	// 打开一个 BoltDB 文件的标准做法:这个数据库是key-value形式的。
@@ -206,6 +206,6 @@ func CreateBlockchain(address string) *BlockChain {
 }
 
 // 关闭db数据库连接
-func (bc *BlockChain) DbClose()  {
+func (bc *BlockChain) DbClose() {
 	bc.db.Close()
 }

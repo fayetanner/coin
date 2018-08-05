@@ -2,14 +2,17 @@ package core
 
 import (
 	"flag"
-	"os"
 	"fmt"
+	"os"
 	"strconv"
 )
 
+// cli命令常量列表
 const (
-	cliCmdAddBlock   = "addblock"
-	cliCmdPrintChain = "printchain"
+	cliGetBalance       = "getbalance"
+	cliCreateBlockchain = "createblockchain"
+	cliSend             = "send"
+	cliPrintChain       = "printchain"
 )
 
 // cli命令结构体
@@ -22,10 +25,10 @@ func (cli *CLI) Run() {
 	var err error
 	cli.validateArgs()
 
-	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
-	createBlockchainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
-	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
-	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
+	getBalanceCmd := flag.NewFlagSet(cliGetBalance, flag.ExitOnError)
+	createBlockchainCmd := flag.NewFlagSet(cliCreateBlockchain, flag.ExitOnError)
+	sendCmd := flag.NewFlagSet(cliSend, flag.ExitOnError)
+	printChainCmd := flag.NewFlagSet(cliPrintChain, flag.ExitOnError)
 
 	getBalanceAddress := getBalanceCmd.String("address", "", "The address to get balance for")
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address to send genesis block reward to")
@@ -35,52 +38,45 @@ func (cli *CLI) Run() {
 
 	// 解析命令行参数
 	switch os.Args[1] {
-	case "getbalance":
+	case cliGetBalance:
 		err = getBalanceCmd.Parse(os.Args[2:])
-	case "createblockchain":
-		err = createBlockchainCmd.Parse(os.Args[2:])
-	case "printchain":
-		err = printChainCmd.Parse(os.Args[2:])
-	case "send":
-		err = sendCmd.Parse(os.Args[2:])
-	default:
-		cli.printUsage()
-		os.Exit(1)
-	}
-
-	HandleErr(err)
-
-	if getBalanceCmd.Parsed() {
+		HandleErr(err)
 		if *getBalanceAddress == "" {
 			getBalanceCmd.Usage()
 			os.Exit(1)
 		}
 		cli.getBalance(*getBalanceAddress)
-	}
 
-	if createBlockchainCmd.Parsed() {
+	case cliCreateBlockchain:
+		err = createBlockchainCmd.Parse(os.Args[2:])
+		HandleErr(err)
 		if *createBlockchainAddress == "" {
 			createBlockchainCmd.Usage()
 			os.Exit(1)
 		}
 		cli.createBlockchain(*createBlockchainAddress)
-	}
 
-	if printChainCmd.Parsed() {
+	case cliPrintChain:
+		err = printChainCmd.Parse(os.Args[2:])
+		HandleErr(err)
 		cli.printChain()
-	}
 
-	if sendCmd.Parsed() {
+	case cliSend:
+		err = sendCmd.Parse(os.Args[2:])
+		HandleErr(err)
 		if *sendFrom == "" || *sendTo == "" || *sendAmount <= 0 {
 			sendCmd.Usage()
 			os.Exit(1)
 		}
-
 		cli.send(*sendFrom, *sendTo, *sendAmount)
+
+	default:
+		cli.printUsage()
+		os.Exit(1)
 	}
 }
 
-// 检查命令行参数
+// 检查命令行参数：至少要有两个
 func (cli *CLI) validateArgs() {
 	if len(os.Args) < 2 {
 		cli.printUsage()
@@ -145,7 +141,7 @@ func (cli *CLI) getBalance(address string) {
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
 
-func (cli *CLI) send(from, to string, amount int)  {
+func (cli *CLI) send(from, to string, amount int) {
 	bc := NewBlockChain()
 	defer bc.DbClose()
 
