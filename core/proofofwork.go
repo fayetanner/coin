@@ -2,16 +2,10 @@ package core
 
 import (
 	"math/big"
-	"strconv"
 	"bytes"
-	"math"
 	"fmt"
 	"crypto/sha256"
 )
-
-// 目前我们并不会实现一个动态调整目标的算法，所以将难度定义为一个全局的常量即可
-const targetBits = 24 // 挖矿难度值
-const maxNonce = math.MaxInt64 // nonce计算器最大值
 
 // 工作量证明结构
 type ProofOfWork struct {
@@ -37,7 +31,7 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 func (pow *ProofOfWork) prepareData(nonce int) []byte {
 	data := bytes.Join([][]byte{
 		pow.block.PrevBlockHash,
-		pow.block.Data,
+		pow.block.HashTransaction(),
 		IntToHex(pow.block.Timestamp),
 		IntToHex(int64(targetBits)),
 		IntToHex(int64(nonce)),
@@ -52,14 +46,14 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	var hash [32]byte
 	nonce := 0
 
-	fmt.Printf("Mining the block containing \"%s\"\n", pow.block.Data)
+	fmt.Printf("Mining a new block \n")
 	for nonce < maxNonce {
 		data := pow.prepareData(nonce)
 		hash = sha256.Sum256(data)
 		hashInt.SetBytes(hash[:])
 		// 找到小于目标targets的哈希值
+		fmt.Printf("\r%x", hash)
 		if hashInt.Cmp(pow.target) == -1 {
-			fmt.Printf("\r%x", hash)
 			break
 		} else {
 			nonce++
@@ -79,9 +73,4 @@ func (pow *ProofOfWork) Validate() bool {
 	isValid := hashInt.Cmp(pow.target) == -1
 
 	return isValid
-}
-
-// 整数转化为字节数组
-func IntToHex(n int64) []byte {
-	return []byte(strconv.FormatInt(n, 10))
 }
