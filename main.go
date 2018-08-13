@@ -1,7 +1,7 @@
 package main
 
 import (
-	"coin/core"
+	"github.com/binkzhao/coin/core"
 	"fmt"
 	"time"
 )

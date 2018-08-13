@@ -48,6 +48,7 @@ func (bc *BlockChain) Iterator() *BlockchainIterator {
 	return bci
 }
 
+// 可以用来spent的输出
 func (bc *BlockChain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
 	unspentOutputs := make(map[string][]int)
 	// 该地址没有被花掉的交易，意思说交易有输出没有被输入引用
@@ -71,6 +72,7 @@ Work:
 	return accumulated, unspentOutputs
 }
 
+// 找到所有包含未花费输出的交易集合
 func (bc *BlockChain) FindUnspentTransactions(address string) []Transaction {
 	var unspentTXs []Transaction
 	spentTXOs := make(map[string][]int)
@@ -79,7 +81,7 @@ func (bc *BlockChain) FindUnspentTransactions(address string) []Transaction {
 	for {
 		block := bci.Next()
 		for _, tx := range block.Transactions {
-			txID := hex.EncodeToString(tx.ID)
+			txID := hex.EncodeToString(tx.ID) // 交易ID转成字符串使用
 
 		OutPuts:
 			for outIdx, out := range tx.Vout {
@@ -97,6 +99,7 @@ func (bc *BlockChain) FindUnspentTransactions(address string) []Transaction {
 				}
 			}
 
+			// 判断是否是创世区块
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Vin {
 					if in.CanUnlockOutputWith(address) {
@@ -107,6 +110,7 @@ func (bc *BlockChain) FindUnspentTransactions(address string) []Transaction {
 			}
 		}
 
+		// 表示已经到创世区块了，结束查找
 		if len(block.PrevBlockHash) == 0 {
 			break
 		}
@@ -115,9 +119,11 @@ func (bc *BlockChain) FindUnspentTransactions(address string) []Transaction {
 	return unspentTXs
 }
 
+// 统计出address对应的所有没有花费出去的输出(也即是它的币)
 func (bc *BlockChain) FindUTXO(address string) []TXOutput {
 	var UTXOs []TXOutput
 
+	// 所有包含未花费输出的交易
 	unspentTransactions := bc.FindUnspentTransactions(address)
 
 	for _, tx := range unspentTransactions {
@@ -131,12 +137,11 @@ func (bc *BlockChain) FindUTXO(address string) []TXOutput {
 	return UTXOs
 }
 
+// 判断db数据库是否存在，也就是判断文件是否存在
 func dbExists() bool {
-	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
-		return false
-	}
+	flag, _ := PathExists(dbFile)
 
-	return true
+	return flag
 }
 
 /**
@@ -166,7 +171,7 @@ func NewBlockChain() *BlockChain {
 	// 打开的是一个读写事务（db.Update(...)），因为我们可能会向数据库中添加创世块
 	db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket)) // 获取区块链数据
-		tip = b.Get([]byte("l"))
+		tip = b.Get([]byte("l")) // 最后一个区块的哈希值
 
 		return nil
 	})
@@ -174,6 +179,7 @@ func NewBlockChain() *BlockChain {
 	return &BlockChain{tip, db}
 }
 
+// 创建区块链，即是初始化区块链，添加创世区块
 func CreateBlockchain(address string) *BlockChain {
 	if dbExists() {
 		fmt.Println("Blockchain already exists.")
@@ -184,6 +190,7 @@ func CreateBlockchain(address string) *BlockChain {
 	HandleErr(err)
 
 	db.Update(func(tx *bolt.Tx) error {
+		// 创世区块交易，只有输出，没有输入
 		cbtx := NewCoinbaseTransaction(address, genesisCoinbaseData)
 		genesis := NewGenesisBlock(cbtx)
 
@@ -193,7 +200,7 @@ func CreateBlockchain(address string) *BlockChain {
 		err = b.Put(genesis.Hash, genesis.Serialize())
 		HandleErr(err)
 
-		err = b.Put([]byte("l"), genesis.Hash)
+		err = b.Put([]byte("l"), genesis.Hash) // 最新块哈希值
 		HandleErr(err)
 		tip = genesis.Hash
 

@@ -99,6 +99,7 @@ func (cli *CLI) printUsage() {
 //	fmt.Println("Add New Block Success!")
 //}
 
+// 创建区块链，创世区块
 func (cli *CLI) createBlockchain(address string) {
 	bc := CreateBlockchain(address)
 	defer bc.db.Close()
@@ -127,6 +128,7 @@ func (cli *CLI) printChain() {
 	}
 }
 
+// 获取余额
 func (cli *CLI) getBalance(address string) {
 	bc := NewBlockChain()
 	defer bc.DbClose()
@@ -138,13 +140,15 @@ func (cli *CLI) getBalance(address string) {
 		balance += out.Value
 	}
 
-	fmt.Printf("Balance of '%s': %d\n", address, balance)
+	fmt.Printf("Balance of '%s': %d BTC\n", address, balance)
 }
 
+// 转账(即是转币)
 func (cli *CLI) send(from, to string, amount int) {
 	bc := NewBlockChain()
 	defer bc.DbClose()
 
+	// 创建转账交易记录
 	tx := NewUTXOTransaction(from, to, amount, bc)
 	bc.MineBlock([]*Transaction{tx})
 

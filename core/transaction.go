@@ -11,7 +11,7 @@ import (
 
 // 交易结构体，用来存储一笔交易
 type Transaction struct {
-	ID   []byte
+	ID   []byte     // 交易id,使用输入输出等信息来哈希，确保信息不被篡改
 	Vin  []TXInput
 	Vout []TXOutput
 }
@@ -39,8 +39,8 @@ func NewCoinbaseTransaction(to, data string) *Transaction {
 	if data == "" {
 		data = fmt.Sprintf("Reward to '%s'", to)
 	}
-	txin := TXInput{[]byte{}, -1, data}
-	txout := TXOutput{subsidy, to}
+	txin := TXInput{[]byte{}, -1, data} // -1表示该输入没有引用任何输出
+	txout := TXOutput{subsidy, to} // 一个块给的奖励subsidy = 10
 	tx := Transaction{nil, []TXInput{txin}, []TXOutput{txout}}
 	tx.SetID()
 
@@ -52,7 +52,7 @@ func NewUTXOTransaction(from, to string, amount int, bc *BlockChain) *Transactio
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	// 找到可以用来花费的所有有效交易输出
+	// 找到可以用来花费的所有有效交易输出(即是统计出该原地址的所有的币)
 	acc, validOutputs := bc.FindSpendableOutputs(from, amount)
 
 	// 判断该地址from的币是否够用来该笔转账
