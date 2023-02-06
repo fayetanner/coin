@@ -8,6 +8,7 @@ import (
 )
 
 // cli命令常量列表
+// cli command constant list
 const (
 	cliGetBalance       = "getbalance"
 	cliCreateBlockchain = "createblockchain"
@@ -16,11 +17,13 @@ const (
 )
 
 // cli命令结构体
+// cli command struct
 type CLI struct {
 	//bc *BlockChain
 }
 
 // 启动cli命令
+// cli run command
 func (cli *CLI) Run() {
 	var err error
 	cli.validateArgs()
@@ -37,6 +40,7 @@ func (cli *CLI) Run() {
 	sendAmount := sendCmd.Int("amount", 0, "Amount to send")
 
 	// 解析命令行参数
+	// Parse command line arguments
 	switch os.Args[1] {
 	case cliGetBalance:
 		err = getBalanceCmd.Parse(os.Args[2:])
@@ -77,6 +81,7 @@ func (cli *CLI) Run() {
 }
 
 // 检查命令行参数：至少要有两个
+// check command line arguments: there should be minimun two.
 func (cli *CLI) validateArgs() {
 	if len(os.Args) < 2 {
 		cli.printUsage()
@@ -85,6 +90,7 @@ func (cli *CLI) validateArgs() {
 }
 
 // 打印命令使用说明
+// Display command line usage instructions
 func (cli *CLI) printUsage() {
 	fmt.Println("Usage:")
 	fmt.Println("  getbalance -address ADDRESS - Get balance of ADDRESS")
@@ -94,12 +100,14 @@ func (cli *CLI) printUsage() {
 }
 
 // 添加一个新区块
+// add a new block
 //func (cli *CLI) addBlock(data string) {
 //	cli.bc.AddBlock(data)
 //	fmt.Println("Add New Block Success!")
 //}
 
 // 创建区块链，创世区块
+// create block chain, genesis block
 func (cli *CLI) createBlockchain(address string) {
 	bc := CreateBlockchain(address)
 	defer bc.db.Close()
@@ -107,6 +115,7 @@ func (cli *CLI) createBlockchain(address string) {
 }
 
 // 打印区块链，从最新块开始->创世区块
+// Print the blockchain, starting from the latest block -> genesis block
 func (cli *CLI) printChain() {
 	bc := NewBlockChain()
 	defer bc.db.Close()
@@ -129,6 +138,7 @@ func (cli *CLI) printChain() {
 }
 
 // 获取余额
+// obtain balance
 func (cli *CLI) getBalance(address string) {
 	bc := NewBlockChain()
 	defer bc.DbClose()
@@ -144,11 +154,13 @@ func (cli *CLI) getBalance(address string) {
 }
 
 // 转账(即是转币)
+// send coin
 func (cli *CLI) send(from, to string, amount int) {
 	bc := NewBlockChain()
 	defer bc.DbClose()
 
 	// 创建转账交易记录
+	// Create transfer transaction records
 	tx := NewUTXOTransaction(from, to, amount, bc)
 	bc.MineBlock([]*Transaction{tx})
 

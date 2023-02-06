@@ -2,11 +2,12 @@ package core
 
 import (
 	"log"
-	"strconv"
 	"os"
+	"strconv"
 )
 
 // 整数转化为字节数组
+// Integer converted to byte array
 func IntToHex(n int64) []byte {
 	return []byte(strconv.FormatInt(n, 10))
 }
@@ -22,6 +23,11 @@ func HandleErr(err error) {
 // 如果返回的错误为nil,说明文件或文件夹存在
 // 如果返回的错误类型使用os.IsNotExist()判断为true,说明文件或文件夹不存在
 // 如果返回的错误为其它类型,则不确定是否在存在
+// Check if the file or folder exists
+// Use the error value returned by the os.Stat() function to determine:
+// If the returned error is nil, the file or folder exists
+// If the returned error type is determined to be true by os.IsNotExist(), it means that the file or folder does not exist
+// If the returned error is other type, it is not sure whether it exists
 func PathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
